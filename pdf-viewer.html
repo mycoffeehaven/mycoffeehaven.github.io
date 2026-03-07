@@ -1,302 +1,728 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Viewer - Aroma Kopi, Rasa Kenangan</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #1A120B;
-            color: #F3E9DC;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .header {
-            background: #2D1B0E;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #A67B5B;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.5rem;
-        }
-        
-        .controls {
-            display: flex;
-            gap: 1rem;
-        }
-        
-        .controls button {
-            background: #A67B5B;
-            color: white;
-            border: none;
-            padding: 0.5rem 1.5rem;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .controls button:hover {
-            background: #D4AF37;
-            transform: translateY(-2px);
-        }
-        
-        .pdf-container {
-            flex: 1;
-            padding: 2rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        #pdfViewer {
-            width: 100%;
-            height: 100%;
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        }
-        
-        .loading {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 2rem;
-            height: 100%;
-        }
-        
-        .coffee-loader {
-            width: 60px;
-            height: 60px;
-            position: relative;
-        }
-        
-        .coffee-cup-loader {
-            width: 60px;
-            height: 40px;
-            background: linear-gradient(135deg, #4A3520, #2D1B0E);
-            border-radius: 0 0 30px 30px;
-            position: relative;
-        }
-        
-        .coffee-cup-loader::before {
-            content: '';
-            position: absolute;
-            top: -15px;
-            left: 0;
-            width: 60px;
-            height: 30px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #4A3520, #2D1B0E);
-        }
-        
-        .steam-loader {
-            position: absolute;
-            width: 8px;
-            height: 30px;
-            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.3), transparent);
-            border-radius: 50%;
-            bottom: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            animation: steam-rise 1.5s infinite ease-in-out;
-        }
-        
-        .steam-loader:nth-child(2) {
-            left: 40%;
-            animation-delay: 0.5s;
-        }
-        
-        .steam-loader:nth-child(3) {
-            left: 60%;
-            animation-delay: 1s;
-        }
-        
-        @keyframes steam-rise {
-            0% { 
-                transform: translateX(-50%) translateY(0) scale(1);
-                opacity: 0;
-            }
-            50% { 
-                opacity: 0.6;
-            }
-            100% { 
-                transform: translateX(-50%) translateY(-30px) scale(1.2);
-                opacity: 0;
-            }
-        }
-        
-        .footer {
-            background: #2D1B0E;
-            padding: 1rem 2rem;
-            text-align: center;
-            font-size: 0.9rem;
-            color: #C9B8A4;
-            border-top: 1px solid #A67B5B;
-        }
-        
-        @media (max-width: 768px) {
-            .header {
-                padding: 1rem;
-                flex-direction: column;
-                gap: 1rem;
-            }
-            
-            .controls {
-                width: 100%;
-                justify-content: center;
-                flex-wrap: wrap;
-            }
-            
-            .pdf-container {
-                padding: 1rem;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Viewer — Aroma Kopi, Rasa Kenangan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #120C07;
+      --surface:     #1E1208;
+      --surface2:    #2A1A0F;
+      --border:      rgba(166,123,91,0.2);
+      --gold:        #C9A14A;
+      --gold-light:  #E8C987;
+      --cream:       #F3E9DC;
+      --cream-dim:   rgba(243,233,220,0.55);
+      --brown:       #A67B5B;
+      --transition:  all 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    html, body {
+      height: 100%; background: var(--bg);
+      color: var(--cream); font-family: 'Inter', sans-serif;
+      overflow: hidden;
+    }
+
+    /* ── Top Bar ── */
+    .topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: 58px;
+      background: rgba(30,18,8,0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      padding: 0 1.5rem; gap: 1rem;
+    }
+
+    .topbar-brand {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; color: var(--cream);
+      text-decoration: none; white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .topbar-brand span:first-child { font-size: 1.2rem; }
+
+    .topbar-divider {
+      width: 1px; height: 20px;
+      background: var(--border); flex-shrink: 0;
+    }
+
+    .chapter-info {
+      flex: 1; min-width: 0;
+    }
+    .chapter-info-label {
+      font-size: 0.7rem; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--gold);
+      font-weight: 500;
+    }
+    .chapter-info-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.95rem; color: var(--cream);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .topbar-actions {
+      display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;
+    }
+
+    .icon-btn {
+      width: 36px; height: 36px;
+      background: rgba(166,123,91,0.12);
+      border: 1px solid var(--border);
+      border-radius: 8px; color: var(--cream-dim);
+      font-size: 0.9rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: var(--transition); position: relative;
+    }
+    .icon-btn:hover {
+      background: rgba(201,161,74,0.15);
+      border-color: rgba(201,161,74,0.3);
+      color: var(--gold);
+    }
+    .icon-btn[data-bookmarked="true"] { color: var(--gold); }
+
+    .icon-btn .tooltip {
+      position: absolute; bottom: calc(100% + 8px); left: 50%;
+      transform: translateX(-50%);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--cream); font-size: 0.72rem;
+      padding: 0.3rem 0.6rem; border-radius: 6px;
+      white-space: nowrap; pointer-events: none;
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .icon-btn:hover .tooltip { opacity: 1; }
+
+    .btn-back {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0 1rem; height: 36px;
+      background: rgba(166,123,91,0.12);
+      border: 1px solid var(--border);
+      border-radius: 8px; color: var(--cream-dim);
+      font-size: 0.82rem; cursor: pointer;
+      transition: var(--transition); text-decoration: none;
+      white-space: nowrap;
+    }
+    .btn-back:hover { color: var(--cream); border-color: var(--brown); }
+
+    /* ── Reading Progress Bar ── */
+    .reading-progress {
+      position: fixed; top: 58px; left: 0; right: 0; z-index: 99;
+      height: 3px; background: rgba(166,123,91,0.1);
+    }
+    .reading-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--brown), var(--gold));
+      width: 0%; transition: width 0.3s ease;
+    }
+
+    /* ── Main Layout ── */
+    .main {
+      position: fixed;
+      top: 61px; bottom: 70px;
+      left: 0; right: 0;
+      display: flex;
+    }
+
+    /* ── Side Panel ── */
+    .side-panel {
+      width: 260px; flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      transition: width 0.35s cubic-bezier(0.4,0,0.2,1),
+                  opacity 0.35s ease;
+      overflow: hidden;
+    }
+    .side-panel.collapsed { width: 0; opacity: 0; }
+
+    .side-panel-header {
+      padding: 1.25rem 1.25rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .side-panel-header h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem; color: var(--cream); margin-bottom: 0.25rem;
+    }
+    .side-panel-header p {
+      font-size: 0.75rem; color: var(--cream-dim);
+    }
+
+    .chapter-list {
+      flex: 1; overflow-y: auto; padding: 0.75rem 0;
+    }
+    .chapter-list::-webkit-scrollbar { width: 4px; }
+    .chapter-list::-webkit-scrollbar-track { background: transparent; }
+    .chapter-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .chapter-item {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.75rem 1.25rem;
+      cursor: pointer; transition: var(--transition);
+      border-left: 3px solid transparent;
+      position: relative;
+    }
+    .chapter-item:hover { background: rgba(166,123,91,0.08); }
+    .chapter-item.active {
+      background: rgba(201,161,74,0.1);
+      border-left-color: var(--gold);
+    }
+    .chapter-item.locked { opacity: 0.45; cursor: not-allowed; }
+
+    .chapter-item-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem; font-weight: 300;
+      color: rgba(166,123,91,0.4); line-height: 1;
+      min-width: 32px;
+    }
+    .chapter-item.active .chapter-item-num { color: var(--gold); }
+
+    .chapter-item-info { flex: 1; min-width: 0; }
+    .chapter-item-title {
+      font-size: 0.82rem; color: var(--cream-dim);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      transition: color 0.2s;
+    }
+    .chapter-item:hover .chapter-item-title,
+    .chapter-item.active .chapter-item-title { color: var(--cream); }
+    .chapter-item-status {
+      font-size: 0.68rem; color: rgba(166,123,91,0.6);
+      margin-top: 0.15rem;
+    }
+    .chapter-item.active .chapter-item-status { color: var(--gold); opacity: 0.7; }
+
+    .read-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--gold); flex-shrink: 0;
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .chapter-item.read .read-dot { opacity: 1; }
+
+    /* ── PDF Area ── */
+    .pdf-area {
+      flex: 1; position: relative; overflow: hidden;
+    }
+
+    .pdf-loading {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 1.5rem;
+      z-index: 10;
+    }
+    .loading-cup {
+      font-size: 3rem; animation: float 2s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .loading-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem; color: var(--cream-dim); font-style: italic;
+    }
+    .loading-dots {
+      display: flex; gap: 6px;
+    }
+    .loading-dots span {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--gold); opacity: 0.3;
+      animation: dotPulse 1.2s ease-in-out infinite;
+    }
+    .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dotPulse {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.3); }
+    }
+
+    #pdfFrame {
+      width: 100%; height: 100%;
+      border: none; display: none;
+    }
+
+    /* ── Bottom Nav ── */
+    .bottombar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+      height: 70px;
+      background: rgba(30,18,8,0.95);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      gap: 1rem; padding: 0 2rem;
+    }
+
+    .nav-chapter-btn {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 0.65rem 1.4rem;
+      background: rgba(166,123,91,0.1);
+      border: 1px solid var(--border);
+      border-radius: 30px; color: var(--cream-dim);
+      font-size: 0.82rem; font-weight: 400;
+      cursor: pointer; transition: var(--transition);
+      text-decoration: none; white-space: nowrap;
+    }
+    .nav-chapter-btn:hover:not(:disabled) {
+      background: rgba(201,161,74,0.15);
+      border-color: rgba(201,161,74,0.4);
+      color: var(--cream);
+    }
+    .nav-chapter-btn:disabled {
+      opacity: 0.3; cursor: not-allowed;
+    }
+    .nav-chapter-btn.primary {
+      background: linear-gradient(135deg, var(--brown), #6F4E37);
+      border-color: transparent; color: var(--cream);
+      font-weight: 500;
+      box-shadow: 0 6px 20px rgba(45,27,14,0.3);
+    }
+    .nav-chapter-btn.primary:hover:not(:disabled) {
+      background: linear-gradient(135deg, var(--gold), #B8860B);
+      box-shadow: 0 10px 30px rgba(201,161,74,0.3);
+      transform: translateY(-1px);
+    }
+
+    .bottombar-center {
+      display: flex; align-items: center; gap: 0.75rem;
+      flex: 1; justify-content: center; max-width: 400px;
+    }
+    .chapter-dots {
+      display: flex; gap: 6px; align-items: center;
+    }
+    .chapter-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: rgba(166,123,91,0.3);
+      transition: var(--transition); cursor: pointer;
+    }
+    .chapter-dot.active {
+      background: var(--gold); transform: scale(1.3);
+    }
+    .chapter-dot.read {
+      background: rgba(201,161,74,0.5);
+    }
+    .chapter-dot:hover { background: var(--brown); }
+
+    /* ── Toast Notification ── */
+    .toast {
+      position: fixed; bottom: 90px; left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--cream); font-size: 0.85rem;
+      padding: 0.6rem 1.25rem; border-radius: 30px;
+      opacity: 0; transition: all 0.3s ease;
+      pointer-events: none; z-index: 200;
+      white-space: nowrap;
+    }
+    .toast.show {
+      opacity: 1; transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── Toggle Panel Button ── */
+    .toggle-panel {
+      position: fixed; left: 260px; top: 50%;
+      transform: translateY(-50%);
+      z-index: 101; transition: left 0.35s cubic-bezier(0.4,0,0.2,1);
+    }
+    .toggle-panel.collapsed { left: 0; }
+    .toggle-panel-btn {
+      width: 20px; height: 48px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-left: none;
+      border-radius: 0 8px 8px 0;
+      cursor: pointer; color: var(--cream-dim);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; transition: var(--transition);
+    }
+    .toggle-panel-btn:hover { color: var(--gold); }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .side-panel { display: none; }
+      .toggle-panel { display: none; }
+      .topbar { padding: 0 1rem; gap: 0.75rem; }
+      .chapter-info-title { display: none; }
+      .bottombar { padding: 0 1rem; gap: 0.5rem; }
+      .nav-chapter-btn { padding: 0.6rem 1rem; font-size: 0.78rem; }
+    }
+  </style>
 </head>
 <body>
-    <div class="header">
-        <div class="logo">
-            <span>☕</span>
-            <span>Aroma Kopi - PDF Viewer</span>
-        </div>
-        <div class="controls">
-            <button onclick="goBack()">
-                ← Kembali
-            </button>
-            <button onclick="downloadPdf()">
-                ⬇ Download
-            </button>
-            <button onclick="printPdf()">
-                🖨️ Print
-            </button>
-            <button onclick="toggleFullscreen()">
-                ⛶ Fullscreen
-            </button>
-        </div>
+
+  <!-- ── Top Bar ── -->
+  <div class="topbar">
+    <a href="index.html" class="btn-back">
+      ← Kembali
+    </a>
+    <div class="topbar-divider"></div>
+    <div class="topbar-brand">
+      <span>☕</span>
+      <span>Aroma Kopi</span>
     </div>
-    
-    <div class="pdf-container">
-        <div class="loading" id="loading">
-            <div class="coffee-loader">
-                <div class="coffee-cup-loader"></div>
-                <div class="steam-loader"></div>
-                <div class="steam-loader"></div>
-                <div class="steam-loader"></div>
-            </div>
-            <p>Memuat PDF, harap tunggu...</p>
-        </div>
-        <iframe id="pdfViewer" style="display: none;"></iframe>
+    <div class="topbar-divider"></div>
+    <div class="chapter-info">
+      <div class="chapter-info-label" id="chapterLabel">Memuat...</div>
+      <div class="chapter-info-title" id="chapterTitle">—</div>
     </div>
-    
-    <div class="footer">
-        © 2026 Aroma Kopi, Rasa Kenangan. Dibuat dengan ❤️ dan ☕ oleh Muhamad Farel Rizky Akbar
+    <div class="topbar-actions">
+      <button class="icon-btn" id="bookmarkBtn" onclick="toggleBookmark()">
+        🔖
+        <span class="tooltip">Bookmark</span>
+      </button>
+      <button class="icon-btn" onclick="downloadPdf()">
+        ⬇
+        <span class="tooltip">Download PDF</span>
+      </button>
+      <button class="icon-btn" onclick="toggleFullscreen()">
+        ⛶
+        <span class="tooltip">Fullscreen</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Reading Progress -->
+  <div class="reading-progress">
+    <div class="reading-progress-fill" id="readingProgress"></div>
+  </div>
+
+  <!-- ── Main ── -->
+  <div class="main" id="mainLayout">
+
+    <!-- Side Panel -->
+    <div class="side-panel" id="sidePanel">
+      <div class="side-panel-header">
+        <h3>Daftar Bab</h3>
+        <p>Klik untuk berpindah bab</p>
+      </div>
+      <div class="chapter-list" id="chapterList"></div>
     </div>
 
-    <script>
-        // Get PDF URL from query parameter
-        const urlParams = new URLSearchParams(window.location.search);
-        const pdfUrl = urlParams.get('file') || 'drafts/aroma_kopi_rasa_kenangan_bab1.pdf';
-        
-        // Load PDF
-        const pdfViewer = document.getElementById('pdfViewer');
-        const loading = document.getElementById('loading');
-        
-        // Set PDF source
-        pdfViewer.src = pdfUrl + '#view=FitH&toolbar=1&navpanes=0';
-        
-        // Hide loading when PDF is loaded
-        pdfViewer.onload = function() {
-            loading.style.display = 'none';
-            pdfViewer.style.display = 'block';
-            
-            // Track reading in localStorage
-            const chapterMatch = pdfUrl.match(/bab(\d+)/i);
-            if (chapterMatch) {
-                const readChapters = JSON.parse(localStorage.getItem('read_chapters') || '[]');
-                const chapterNum = parseInt(chapterMatch[1]);
-                
-                if (!readChapters.includes(chapterNum)) {
-                    readChapters.push(chapterNum);
-                    localStorage.setItem('read_chapters', JSON.stringify(readChapters));
-                    
-                    // Add reading timestamp
-                    const readTimes = JSON.parse(localStorage.getItem('read_times') || '{}');
-                    readTimes[chapterNum] = new Date().toISOString();
-                    localStorage.setItem('read_times', JSON.stringify(readTimes));
-                }
-            }
-        };
-        
-        // Functions
-        function goBack() {
-            window.history.back();
+    <!-- PDF Area -->
+    <div class="pdf-area">
+      <div class="pdf-loading" id="pdfLoading">
+        <div class="loading-cup">☕</div>
+        <div class="loading-text">Menyeduh halaman...</div>
+        <div class="loading-dots">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+      <iframe id="pdfFrame" title="PDF Viewer"></iframe>
+    </div>
+
+  </div>
+
+  <!-- Toggle Panel Button -->
+  <div class="toggle-panel" id="togglePanel">
+    <button class="toggle-panel-btn" onclick="toggleSidePanel()" id="togglePanelBtn">◀</button>
+  </div>
+
+  <!-- ── Bottom Nav ── -->
+  <div class="bottombar">
+    <button class="nav-chapter-btn" id="prevBtn" onclick="goToChapter(currentChapter - 1)" disabled>
+      ← Bab Sebelumnya
+    </button>
+    <div class="bottombar-center">
+      <div class="chapter-dots" id="chapterDots"></div>
+    </div>
+    <button class="nav-chapter-btn primary" id="nextBtn" onclick="goToChapter(currentChapter + 1)">
+      Bab Selanjutnya →
+    </button>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ── Chapter Data ──────────────────────────────────────────
+    const CHAPTERS = [
+      {
+        num: 1,
+        title: "Awal dari Rasa",
+        file: "drafts/aroma_kopi_rasa_kenangan_bab1.pdf",
+        available: true
+      },
+      {
+        num: 2,
+        title: "Kenangan yang Mengendap",
+        file: "drafts/aroma_kopi_rasa_kenangan_bab2.pdf",
+        available: true
+      },
+      {
+        num: 3,
+        title: "Rasa yang Belum Bernama",
+        file: "drafts/aroma_kopi_rasa_kenangan_bab3.pdf",
+        available: true
+      },
+      {
+        num: 4,
+        title: "Percakapan di Antara Hening",
+        file: null,
+        available: false
+      },
+      {
+        num: 5,
+        title: "Nama di Cangkir yang Kelima",
+        file: null,
+        available: false
+      },
+      {
+        num: 6,
+        title: "Hujan dan Satu Pertanyaan",
+        file: null,
+        available: false
+      }
+    ];
+
+    // ── State ─────────────────────────────────────────────────
+    let currentChapter = 1;
+    let sidePanelOpen = true;
+    let readChapters = JSON.parse(localStorage.getItem('ak_read') || '[]');
+    let bookmarks    = JSON.parse(localStorage.getItem('ak_bookmarks') || '[]');
+
+    // ── Init ─────────────────────────────────────────────────
+    window.addEventListener('DOMContentLoaded', () => {
+      // Get chapter from URL param
+      const params = new URLSearchParams(window.location.search);
+      const fileParam = params.get('file');
+      const chapParam = parseInt(params.get('bab'));
+
+      if (chapParam && CHAPTERS.find(c => c.num === chapParam)) {
+        currentChapter = chapParam;
+      } else if (fileParam) {
+        const match = fileParam.match(/bab(\d+)/i);
+        if (match) currentChapter = parseInt(match[1]);
+      }
+
+      buildChapterList();
+      buildDots();
+      loadChapter(currentChapter, false);
+    });
+
+    // ── Build UI ──────────────────────────────────────────────
+    function buildChapterList() {
+      const list = document.getElementById('chapterList');
+      list.innerHTML = '';
+      CHAPTERS.forEach(ch => {
+        const isRead = readChapters.includes(ch.num);
+        const isActive = ch.num === currentChapter;
+        const div = document.createElement('div');
+        div.className = `chapter-item ${isActive ? 'active' : ''} ${!ch.available ? 'locked' : ''} ${isRead ? 'read' : ''}`;
+        div.dataset.num = ch.num;
+        div.innerHTML = `
+          <span class="chapter-item-num">${String(ch.num).padStart(2,'0')}</span>
+          <div class="chapter-item-info">
+            <div class="chapter-item-title">${ch.title}</div>
+            <div class="chapter-item-status">${ch.available ? (isRead ? '✓ Sudah dibaca' : 'Tersedia') : '🔒 Belum tersedia'}</div>
+          </div>
+          <span class="read-dot"></span>
+        `;
+        if (ch.available) {
+          div.addEventListener('click', () => goToChapter(ch.num));
         }
-        
-        function downloadPdf() {
-            const link = document.createElement('a');
-            link.href = pdfUrl;
-            link.download = pdfUrl.split('/').pop();
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        list.appendChild(div);
+      });
+    }
+
+    function buildDots() {
+      const container = document.getElementById('chapterDots');
+      container.innerHTML = '';
+      CHAPTERS.forEach(ch => {
+        const dot = document.createElement('div');
+        dot.className = `chapter-dot ${ch.num === currentChapter ? 'active' : ''} ${readChapters.includes(ch.num) ? 'read' : ''}`;
+        dot.title = `Bab ${ch.num}: ${ch.title}`;
+        if (ch.available) dot.addEventListener('click', () => goToChapter(ch.num));
+        container.appendChild(dot);
+      });
+    }
+
+    // ── Load Chapter ─────────────────────────────────────────
+    function loadChapter(num, animate = true) {
+      const ch = CHAPTERS.find(c => c.num === num);
+      if (!ch) return;
+      if (!ch.available) {
+        showToast(`Bab ${num} belum tersedia — sabar ya! ☕`);
+        return;
+      }
+
+      currentChapter = num;
+
+      // Update URL without reload
+      const url = new URL(window.location);
+      url.searchParams.set('bab', num);
+      window.history.pushState({}, '', url);
+
+      // Update header info
+      document.getElementById('chapterLabel').textContent = `Bab ${String(num).padStart(2,'0')}`;
+      document.getElementById('chapterTitle').textContent = ch.title;
+      document.title = `Bab ${num}: ${ch.title} — Aroma Kopi`;
+
+      // Update bookmark btn
+      document.getElementById('bookmarkBtn').dataset.bookmarked =
+        bookmarks.includes(num) ? 'true' : 'false';
+
+      // Show loading
+      const loading = document.getElementById('pdfLoading');
+      const frame   = document.getElementById('pdfFrame');
+      if (animate) {
+        frame.style.display = 'none';
+        loading.style.display = 'flex';
+      }
+
+      // Load PDF
+      frame.src = ch.file + '#view=FitH&toolbar=1&navpanes=0&scrollbar=1';
+      frame.onload = () => {
+        loading.style.display = 'none';
+        frame.style.display = 'block';
+        markAsRead(num);
+        // Animate reading progress
+        animateReadingProgress();
+      };
+
+      // Update nav buttons
+      updateNavButtons();
+      buildChapterList();
+      buildDots();
+    }
+
+    function goToChapter(num) {
+      const ch = CHAPTERS.find(c => c.num === num);
+      if (!ch) return;
+      if (!ch.available) {
+        showToast(`Bab ${num} belum tersedia — sabar ya! ☕`);
+        return;
+      }
+      loadChapter(num);
+    }
+
+    // ── Nav Buttons ───────────────────────────────────────────
+    function updateNavButtons() {
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+
+      const prevCh = CHAPTERS.find(c => c.num === currentChapter - 1);
+      const nextCh = CHAPTERS.find(c => c.num === currentChapter + 1);
+
+      // Prev
+      if (prevCh) {
+        prevBtn.disabled = false;
+        prevBtn.textContent = `← Bab ${prevCh.num}`;
+      } else {
+        prevBtn.disabled = true;
+        prevBtn.textContent = `← Bab Sebelumnya`;
+      }
+
+      // Next
+      if (nextCh) {
+        if (nextCh.available) {
+          nextBtn.disabled = false;
+          nextBtn.textContent = `Bab ${nextCh.num} →`;
+          nextBtn.className = 'nav-chapter-btn primary';
+        } else {
+          nextBtn.disabled = false;
+          nextBtn.textContent = `Bab ${nextCh.num} (Segera) →`;
+          nextBtn.className = 'nav-chapter-btn';
+          nextBtn.onclick = () => showToast(`Bab ${nextCh.num} belum tersedia — sabar ya! ☕`);
         }
-        
-        function printPdf() {
-            pdfViewer.contentWindow.print();
-        }
-        
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                pdfViewer.requestFullscreen().catch(err => {
-                    console.log(`Error attempting to enable fullscreen: ${err.message}`);
-                });
-            } else {
-                document.exitFullscreen();
-            }
-        }
-        
-        // Keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                goBack();
-            }
-            
-            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
-                e.preventDefault();
-                printPdf();
-            }
-            
-            if (e.key === 'F11') {
-                e.preventDefault();
-                toggleFullscreen();
-            }
-        });
-        
-        // Update document title based on PDF
-        const pdfName = pdfUrl.split('/').pop().replace('.pdf', '').replace(/_/g, ' ');
-        document.title = pdfName + ' - Aroma Kopi PDF Viewer';
-    </script>
+      } else {
+        nextBtn.disabled = true;
+        nextBtn.textContent = `Selesai 🎉`;
+        nextBtn.className = 'nav-chapter-btn';
+      }
+    }
+
+    // ── Reading Progress ──────────────────────────────────────
+    function animateReadingProgress() {
+      const available = CHAPTERS.filter(c => c.available).length;
+      const pct = (currentChapter / available) * 100;
+      const bar = document.getElementById('readingProgress');
+      bar.style.width = '0%';
+      setTimeout(() => bar.style.width = Math.min(pct, 100) + '%', 200);
+    }
+
+    // ── Read Tracking ─────────────────────────────────────────
+    function markAsRead(num) {
+      if (!readChapters.includes(num)) {
+        readChapters.push(num);
+        localStorage.setItem('ak_read', JSON.stringify(readChapters));
+        const times = JSON.parse(localStorage.getItem('ak_read_times') || '{}');
+        times[num] = new Date().toISOString();
+        localStorage.setItem('ak_read_times', JSON.stringify(times));
+      }
+    }
+
+    // ── Bookmark ──────────────────────────────────────────────
+    function toggleBookmark() {
+      const btn = document.getElementById('bookmarkBtn');
+      const idx = bookmarks.indexOf(currentChapter);
+      if (idx === -1) {
+        bookmarks.push(currentChapter);
+        btn.dataset.bookmarked = 'true';
+        showToast('🔖 Bab ini di-bookmark!');
+      } else {
+        bookmarks.splice(idx, 1);
+        btn.dataset.bookmarked = 'false';
+        showToast('Bookmark dihapus');
+      }
+      localStorage.setItem('ak_bookmarks', JSON.stringify(bookmarks));
+    }
+
+    // ── Side Panel ────────────────────────────────────────────
+    function toggleSidePanel() {
+      sidePanelOpen = !sidePanelOpen;
+      const panel       = document.getElementById('sidePanel');
+      const toggleWrap  = document.getElementById('togglePanel');
+      const toggleBtn   = document.getElementById('togglePanelBtn');
+      panel.classList.toggle('collapsed', !sidePanelOpen);
+      toggleWrap.classList.toggle('collapsed', !sidePanelOpen);
+      toggleBtn.textContent = sidePanelOpen ? '◀' : '▶';
+    }
+
+    // ── Download ──────────────────────────────────────────────
+    function downloadPdf() {
+      const ch = CHAPTERS.find(c => c.num === currentChapter);
+      if (!ch || !ch.file) return;
+      const a = document.createElement('a');
+      a.href = ch.file;
+      a.download = `Aroma_Kopi_Bab${ch.num}_${ch.title.replace(/\s+/g,'_')}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast('⬇ Mengunduh PDF...');
+    }
+
+    // ── Fullscreen ────────────────────────────────────────────
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    // ── Toast ─────────────────────────────────────────────────
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2800);
+    }
+
+    // ── Keyboard Shortcuts ────────────────────────────────────
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goToChapter(currentChapter + 1);
+      if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   goToChapter(currentChapter - 1);
+      if (e.key === 'b' || e.key === 'B') toggleBookmark();
+      if (e.key === 'F11') { e.preventDefault(); toggleFullscreen(); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'd') { e.preventDefault(); downloadPdf(); }
+    });
+  </script>
 </body>
 </html>
