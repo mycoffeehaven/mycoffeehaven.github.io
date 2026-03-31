@@ -441,44 +441,28 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    // ── Chapter Data ──────────────────────────────────────────
+    // ── Chapter Data (Updated: 20 Chapters, Bab 1-10 Available, Bab 11-20 Locked) ──
     const CHAPTERS = [
-      {
-        num: 1,
-        title: "Awal dari Rasa",
-        file: "drafts/aroma_kopi_rasa_kenangan_bab1.pdf",
-        available: true
-      },
-      {
-        num: 2,
-        title: "Kenangan yang Mengendap",
-        file: "drafts/aroma_kopi_rasa_kenangan_bab2.pdf",
-        available: true
-      },
-      {
-        num: 3,
-        title: "Rasa yang Belum Bernama",
-        file: "drafts/aroma_kopi_rasa_kenangan_bab3.pdf",
-        available: true
-      },
-      {
-        num: 4,
-        title: "Minggu yang Tak Direncanakan",
-        file: "drafts/aroma_kopi_rasa_kenangan_bab4.pdf",
-        available: true
-      },
-      {
-        num: 5,
-        title: "Rasa yang Mulai Tumbuh",
-        file: "drafts/aroma_kopi_rasa_kenangan_bab5.pdf",
-        available: true
-      },
-      {
-        num: 6,
-        title: "Menanti Hari yang Dijanjikan",
-        file: "drafts/aroma_kopi_rasa_kenangan_bab6.pdf",
-        available: true
-      }
+      { num: 1, title: "Awal dari Rasa", file: "drafts/aroma_kopi_rasa_kenangan_bab1.pdf", available: true },
+      { num: 2, title: "Kenangan yang Mengendap", file: "drafts/aroma_kopi_rasa_kenangan_bab2.pdf", available: true },
+      { num: 3, title: "Rasa yang Belum Bernama", file: "drafts/aroma_kopi_rasa_kenangan_bab3.pdf", available: true },
+      { num: 4, title: "Percakapan di Antara Hening", file: "drafts/aroma_kopi_rasa_kenangan_bab4.pdf", available: true },
+      { num: 5, title: "Nama di Cangkir yang Kelima", file: "drafts/aroma_kopi_rasa_kenangan_bab5.pdf", available: true },
+      { num: 6, title: "Hujan dan Satu Pertanyaan", file: "drafts/aroma_kopi_rasa_kenangan_bab6.pdf", available: true },
+      { num: 7, title: "Tamu yang Tak Biasa", file: "drafts/aroma_kopi_rasa_kenangan_bab7.pdf", available: true },
+      { num: 8, title: "Kisah yang Belum Selesai", file: "drafts/aroma_kopi_rasa_kenangan_bab8.pdf", available: true },
+      { num: 9, title: "Ruang di Antara Kata", file: "drafts/aroma_kopi_rasa_kenangan_bab9.pdf", available: true },
+      { num: 10, title: "Menemukan Jalan Pulang", file: "drafts/aroma_kopi_rasa_kenangan_bab10.pdf", available: true },
+      { num: 11, title: "Sisa Rasa di Ujung Senja", file: "drafts/aroma_kopi_rasa_kenangan_bab11.pdf", available: false },
+      { num: 12, title: "Titik Temu yang Tak Terduga", file: "drafts/aroma_kopi_rasa_kenangan_bab12.pdf", available: false },
+      { num: 13, title: "Cerita yang Tak Bisa Diulang", file: "drafts/aroma_kopi_rasa_kenangan_bab13.pdf", available: false },
+      { num: 14, title: "Jeda yang Berarti", file: "drafts/aroma_kopi_rasa_kenangan_bab14.pdf", available: false },
+      { num: 15, title: "Kembali ke Stasiun Itu", file: "drafts/aroma_kopi_rasa_kenangan_bab15.pdf", available: false },
+      { num: 16, title: "Kata yang Akhirnya Terucap", file: "drafts/aroma_kopi_rasa_kenangan_bab16.pdf", available: false },
+      { num: 17, title: "Antara Berani dan Takut", file: "drafts/aroma_kopi_rasa_kenangan_bab17.pdf", available: false },
+      { num: 18, title: "Rasa yang Tak Terbantahkan", file: "drafts/aroma_kopi_rasa_kenangan_bab18.pdf", available: false },
+      { num: 19, title: "Memilih untuk Percaya", file: "drafts/aroma_kopi_rasa_kenangan_bab19.pdf", available: false },
+      { num: 20, title: "Aroma yang Tersisa", file: "drafts/aroma_kopi_rasa_kenangan_bab20.pdf", available: false }
     ];
 
     // ── State ─────────────────────────────────────────────────
@@ -611,26 +595,31 @@
       const nextCh = CHAPTERS.find(c => c.num === currentChapter + 1);
 
       // Prev
-      if (prevCh) {
+      if (prevCh && prevCh.available) {
         prevBtn.disabled = false;
         prevBtn.textContent = `← Bab ${prevCh.num}`;
+        prevBtn.onclick = () => goToChapter(prevCh.num);
+      } else if (prevCh && !prevCh.available) {
+        prevBtn.disabled = false;
+        prevBtn.textContent = `← Bab ${prevCh.num} (Segera)`;
+        prevBtn.onclick = () => showToast(`Bab ${prevCh.num} belum tersedia — sabar ya! ☕`);
+        prevBtn.className = 'nav-chapter-btn';
       } else {
         prevBtn.disabled = true;
         prevBtn.textContent = `← Bab Sebelumnya`;
       }
 
       // Next
-      if (nextCh) {
-        if (nextCh.available) {
-          nextBtn.disabled = false;
-          nextBtn.textContent = `Bab ${nextCh.num} →`;
-          nextBtn.className = 'nav-chapter-btn primary';
-        } else {
-          nextBtn.disabled = false;
-          nextBtn.textContent = `Bab ${nextCh.num} (Segera) →`;
-          nextBtn.className = 'nav-chapter-btn';
-          nextBtn.onclick = () => showToast(`Bab ${nextCh.num} belum tersedia — sabar ya! ☕`);
-        }
+      if (nextCh && nextCh.available) {
+        nextBtn.disabled = false;
+        nextBtn.textContent = `Bab ${nextCh.num} →`;
+        nextBtn.className = 'nav-chapter-btn primary';
+        nextBtn.onclick = () => goToChapter(nextCh.num);
+      } else if (nextCh && !nextCh.available) {
+        nextBtn.disabled = false;
+        nextBtn.textContent = `Bab ${nextCh.num} (Segera) →`;
+        nextBtn.className = 'nav-chapter-btn';
+        nextBtn.onclick = () => showToast(`Bab ${nextCh.num} belum tersedia — sabar ya! ☕`);
       } else {
         nextBtn.disabled = true;
         nextBtn.textContent = `Selesai 🎉`;
@@ -688,7 +677,10 @@
     // ── Download ──────────────────────────────────────────────
     function downloadPdf() {
       const ch = CHAPTERS.find(c => c.num === currentChapter);
-      if (!ch || !ch.file) return;
+      if (!ch || !ch.available || !ch.file) {
+        showToast('Bab ini belum tersedia untuk diunduh');
+        return;
+      }
       const a = document.createElement('a');
       a.href = ch.file;
       a.download = `Aroma_Kopi_Bab${ch.num}_${ch.title.replace(/\s+/g,'_')}.pdf`;
